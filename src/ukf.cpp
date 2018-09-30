@@ -25,10 +25,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 30;
+  std_a_ = 1.5;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 30;
+  std_yawdd_ = 0.15;
   
   //DO NOT MODIFY measurement noise values below these are provided by the sensor manufacturer.
   // Laser measurement noise standard deviation position1 in m
@@ -104,21 +104,21 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
           0, 0, 1, 0, 0,
           0, 0, 0, 1, 0,
           0, 0, 0, 0, 1;
-    cout<<"After initization, P_ = "<<P_<<endl;// Added by Harrison
+    //cout<<"After initization, P_ = "<<P_<<endl;// Added by Harrison
 
     if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
       /**
       Convert radar from polar to cartesian coordinates and initialize state.
       */
       x_ << meas_package.raw_measurements_[0]*cos(meas_package.raw_measurements_[1]), meas_package.raw_measurements_[0]*sin(meas_package.raw_measurements_[1]), 0, 0, 0;
-      cout<<"After initization with radar measurement data, x_ = "<<x_<<endl;// Added by Harrison
+      //cout<<"After initization with radar measurement data, x_ = "<<x_<<endl;// Added by Harrison
     }
     else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
       /**
       Initialize state.
       */
       x_ << meas_package.raw_measurements_[0], meas_package.raw_measurements_[1], 0, 0, 0;
-      cout<<"After initization with lidar measurement data, x_ = "<<x_<<endl;// Added by Harrison
+      //cout<<"After initization with lidar measurement data, x_ = "<<x_<<endl;// Added by Harrison
     }
 
     // Initialize the previous time stamp
@@ -154,7 +154,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 
   //compute the time elapsed between the current and previous measurements
   double dt = (meas_package.timestamp_ - time_us_) / 1000000.0; //dt - expressed in seconds
-  cout<<"dt = "<<dt<<" seconds."<<endl;
+  //cout<<"dt = "<<dt<<" seconds."<<endl; // Added by Harrison
 
   time_us_ = meas_package.timestamp_;
 
@@ -166,19 +166,17 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 
   if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
     // Radar updates
-    cout<<"Prepare to update with radar data."<<endl;//Added by Harrison
-
+    //cout<<"Prepare to update with radar data."<<endl;//Added by Harrison
     UpdateRadar(meas_package);
   } else {
-    // Laser updates
-    cout<<"Prepare to update with lidar data."<<endl;//Added by Harrison
-
+    // Laser updates 
+    //cout<<"Prepare to update with lidar data."<<endl;//Added by Harrison
     UpdateLidar(meas_package);
   }
 
   // print the output
-  cout << "x_ = " << x_ << endl;
-  cout << "P_ = " << P_ << endl;
+  //cout << "x_ = " << x_ << endl; //Added by Harrison
+  //cout << "P_ = " << P_ << endl; //Added by Harrison
 }
 
 /**
@@ -211,14 +209,14 @@ void UKF::Prediction(double delta_t) {
   x_aug.head(5) = x_;
   x_aug(5) = 0;
   x_aug(6) = 0;
-  cout<<"In Prediction function, the augmented x_ is: "<<x_aug<<endl;// Added by Harrison
+  //cout<<"In Prediction function, the augmented x_ is: "<<x_aug<<endl;// Added by Harrison
 
   //create augmented covariance matrix
   P_aug.fill(0.0);
   P_aug.topLeftCorner(5,5) = P_;
   P_aug(5,5) = std_a_*std_a_;
   P_aug(6,6) = std_yawdd_*std_yawdd_;
-  cout<<"In Prediction function, the augmented P_ is: "<<P_aug<<endl;// Added by Harrison
+  //cout<<"In Prediction function, the augmented P_ is: "<<P_aug<<endl;// Added by Harrison
 
 
   //create square root matrix
@@ -324,8 +322,8 @@ void UKF::Prediction(double delta_t) {
   * End Predict Mean and Covariance
   ******************************************************************************/
 
-  cout<<"After Prediction function, the x_ is: "<<x_<<endl;// Added by Harrison
-  cout<<"After Prediction function, the P_ is: "<<P_<<endl;// Added by Harrison
+  //cout<<"After Prediction function, the x_ is: "<<x_<<endl;// Added by Harrison
+  //cout<<"After Prediction function, the P_ is: "<<P_<<endl;// Added by Harrison
 }
 
 /**
@@ -342,7 +340,7 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   You'll also need to calculate the lidar NIS.
   */
 
-  cout<<"Entering UpdateLidar function."<<endl;//Added by Harrison
+  //cout<<"Entering UpdateLidar function."<<endl;//Added by Harrison
 
   //set measurement dimension, lidar can measure p_x and p_y
   int n_z = 2;
@@ -366,7 +364,7 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
     Zsig(1,i) = p_y;                        //py
   }
 
-  cout<<"After transforming the predicted sigma points to measurement space, the Zsig_ is: "<<Zsig<<endl;// Added by Harrison
+  //cout<<"After transforming the predicted sigma points to measurement space, the Zsig_ is: "<<Zsig<<endl;// Added by Harrison
 
   //mean predicted measurement
   VectorXd z_pred = VectorXd(n_z);
@@ -431,6 +429,10 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   x_ = x_ + K * z_diff;
   P_ = P_ - K*S*K.transpose();
 
+  // Calculate the radar NIS
+  double NIS_L = z_diff.transpose() * S.inverse() * z_diff;
+  cout<<"The lidar NIS is: "<<NIS_L<<endl;
+
   /*******************************************************************************
   * End Update with lidar measurement data
   ******************************************************************************/
@@ -450,7 +452,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   You'll also need to calculate the radar NIS.
   */
 
-  cout<<"Entering UpdateRadar function."<<endl;//Added by Harrison
+  //cout<<"Entering UpdateRadar function."<<endl;//Added by Harrison
 
   //set measurement dimension, radar can measure r, phi, and r_dot
   int n_z = 3;
@@ -480,7 +482,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     Zsig(2,i) = (p_x*v1 + p_y*v2 ) / sqrt(p_x*p_x + p_y*p_y);   //r_dot
   }
 
-  cout<<"After transforming the predicted sigma points to measurement space, the Zsig_ is: "<<Zsig<<endl;// Added by Harrison
+  //cout<<"After transforming the predicted sigma points to measurement space, the Zsig_ is: "<<Zsig<<endl;// Added by Harrison
 
   //mean predicted measurement
   VectorXd z_pred = VectorXd(n_z);
@@ -489,7 +491,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
       z_pred = z_pred + weights_(i) * Zsig.col(i);
   }
 
-  cout<<"z_pred is:"<<z_pred<<endl; //Added by Harrison
+  //cout<<"z_pred is:"<<z_pred<<endl; //Added by Harrison
 
   //innovation covariance matrix S
   MatrixXd S = MatrixXd(n_z,n_z);
@@ -505,7 +507,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     S = S + weights_(i) * z_diff * z_diff.transpose();
   }
 
-  cout<<"S is:"<<S<<endl; //Added by Harrison
+  //cout<<"S is:"<<S<<endl; //Added by Harrison
 
   //add measurement noise covariance matrix
   MatrixXd R = MatrixXd(n_z,n_z);
@@ -514,7 +516,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
           0, 0,std_radrd_ * std_radrd_;
   S = S + R;
   
-  cout<<"After adding R, S is:"<<S<<endl; //Added by Harrison
+  //cout<<"After adding R, S is:"<<S<<endl; //Added by Harrison
 
   /*******************************************************************************
   * End Transform to measurement space
@@ -526,7 +528,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
        meas_package.raw_measurements_(1),
        meas_package.raw_measurements_(2);
 
-  cout<<"The radar measurement data z is:"<<z<<endl; //Added by Harrison
+  //cout<<"The radar measurement data z is:"<<z<<endl; //Added by Harrison
 
   //create matrix for cross correlation Tc
   MatrixXd Tc = MatrixXd(n_x_, n_z);
@@ -567,6 +569,10 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   //update state mean and covariance matrix
   x_ = x_ + K * z_diff;
   P_ = P_ - K*S*K.transpose();
+
+  // Calculate the radar NIS
+  double NIS_R = z_diff.transpose() * S.inverse() * z_diff;
+  cout<<"The radar NIS is: "<<NIS_R<<endl;
 
   /*******************************************************************************
   * End Update with radar measurement data

@@ -100,7 +100,7 @@ int main()
     	  iss >> vy_gt;
     	  VectorXd gt_values(4);
     	  gt_values(0) = x_gt;
-    	  gt_values(1) = y_gt; 
+    	  gt_values(1) = y_gt;
     	  gt_values(2) = vx_gt;
     	  gt_values(3) = vy_gt;
     	  ground_truth.push_back(gt_values);
